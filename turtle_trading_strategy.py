@@ -218,45 +218,4 @@ class TurtleTradingStrategy:
         return data_with_positions
 
 
-def get_stock_data(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
-    """
-    获取股票数据
-    
-    Args:
-        symbol: 股票代码
-        start_date: 开始日期
-        end_date: 结束日期
-        
-    Returns:
-        股票数据
-    """
-    try:
-        stock = yf.Ticker(symbol)
-        data = stock.history(start=start_date, end=end_date)
-        if data.empty:
-            print(f"未能获取到 {symbol} 的数据")
-            return pd.DataFrame()
-        return data
-    except Exception as e:
-        print(f"获取 {symbol} 数据时出错: {e}")
-        return pd.DataFrame()
-
-
-if __name__ == "__main__":
-    # 示例使用
-    # 获取数据
-    symbol = "AAPL"
-    start_date = "2020-01-01"
-    end_date = "2023-12-31"
-    
-    data = get_stock_data(symbol, start_date, end_date)
-    if not data.empty:
-        # 创建策略实例
-        strategy = TurtleTradingStrategy()
-        
-        # 运行策略
-        results = strategy.run_strategy(data)
-        
-        # 显示结果
-        print(f"海龟交易策略结果 ({symbol})")
-        print(results[['Close', 'Donchian_High', 'Donchian_Low', 'Signal', 'Position_Size']].tail(10))
+ 

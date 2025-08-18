@@ -11,7 +11,8 @@ import os
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from turtle_trading_strategy import TurtleTradingStrategy, get_stock_data
+from turtle_trading_strategy import TurtleTradingStrategy
+from data_utils import get_stock_data
 
 
 class TurtleBacktester:
@@ -258,6 +259,8 @@ class TurtleBacktester:
             '年化收益率(%)': annual_return_percent,
             '最大回撤(%)': max_drawdown,
             '夏普比率': sharpe_ratio,
+            '索提诺比率': sortino_ratio,
+            '卡玛比率': calmar_ratio,
             '总交易次数': total_trades,
             '胜率(%)': win_rate,
             '盈利次数': winning_trades,

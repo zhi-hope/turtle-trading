@@ -3,9 +3,9 @@
 """
 
 import pandas as pd
-import yfinance as yf
-from turtle_trading_strategy import TurtleTradingStrategy, get_stock_data
+from turtle_trading_strategy import TurtleTradingStrategy
 from turtle_backtest import TurtleBacktester
+from data_utils import get_stock_data
 
 def main():
     # 设置参数 - 通过用户输入
@@ -46,6 +46,8 @@ def main():
         start_date=start_date,
         end_date=end_date,
         initial_capital=initial_capital,
+        commission_rate=commission,
+        slippage=slippage,
         contract_size=1.0
     )
     
