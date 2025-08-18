@@ -13,8 +13,15 @@ def main():
     symbol = input("股票代码 (例如: AAPL, GOOGL, TSLA): ") or "AAPL"
     start_date = input("开始日期 (YYYY-MM-DD): ") or "2020-01-01"
     end_date = input("结束日期 (YYYY-MM-DD): ") or "2023-12-31"
-    initial_capital_input = input("初始资金 (默认100000.0): ")
+    
+    initial_capital_input = input("初始资金 (默认 100000.0): ")
     initial_capital = float(initial_capital_input) if initial_capital_input else 100000.0
+    
+    commission_input = input("手续费率 (默认 0.001): ")
+    commission = float(commission_input) if commission_input else 0.001
+
+    slippage_input = input("滑点 (默认 0.001): ")
+    slippage = float(slippage_input) if slippage_input else 0.001
     
     print("海龟交易策略示例")
     print("=" * 50)

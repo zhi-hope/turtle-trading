@@ -21,6 +21,8 @@ class TurtleBacktester:
                  start_date: str,
                  end_date: str,
                  initial_capital: float = 100000.0,
+                 commission_rate: float = 0.001,
+                 slippage: float = 0.001,
                  contract_size: float = 1.0):
         """
         初始化回测引擎
@@ -30,12 +32,16 @@ class TurtleBacktester:
             start_date: 回测开始日期
             end_date: 回测结束日期
             initial_capital: 初始资金
+            commission_rate: 手续费率
+            slippage: 滑点
             contract_size: 合约乘数
         """
         self.symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.initial_capital = initial_capital
+        self.commission_rate = commission_rate
+        self.slippage = slippage
         self.contract_size = contract_size
         self.data = None
         self.strategy = None
@@ -125,16 +131,26 @@ class TurtleBacktester:
                 (position > 0 and signal == -1) or  # 多头持仓，收到平仓/反向信号
                 (position < 0 and signal == 1)      # 空头持仓，收到平仓/反向信号
             ):
-                # 记录平仓交易
-                exit_price = close_price
+                # 计算滑点后的退出价格
+                exit_price = close_price * (1 - self.slippage) if position > 0 else close_price * (1 + self.slippage)
+                
+                # 计算毛利润
                 profit = (exit_price - entry_price) * position * self.contract_size
+                
+                # 计算手续费
+                commission = (entry_price * abs(position) * self.contract_size + 
+                              exit_price * abs(position) * self.contract_size) * self.commission_rate
+                
+                # 计算净利润
+                net_profit = profit - commission
+                
                 trades.append({
                     'Entry_Date': entry_date,
                     'Exit_Date': date,
                     'Entry_Price': entry_price,
                     'Exit_Price': exit_price,
                     'Position': position,
-                    'Profit': profit,
+                    'Profit': net_profit,
                     'Return': (exit_price / entry_price - 1) * 100 if position > 0 else (entry_price / exit_price - 1) * 100
                 })
                 
@@ -145,25 +161,42 @@ class TurtleBacktester:
             
             # 如果无持仓且有入场信号，则开仓
             if position == 0 and signal != 0:
-                # 确定新持仓方向
-                new_position = position_size if signal == 1 else -position_size
-                position = new_position
-                entry_price = close_price
+                # 确定新持仓方向和带滑点的入场价格
+                if signal == 1:
+                    position = position_size
+                    entry_price = close_price * (1 + self.slippage)
+                else:
+                    position = -position_size
+                    entry_price = close_price * (1 - self.slippage)
+                
                 entry_date = date
         
         # 如果还有未平仓的仓位，在最后一天平仓
         if position != 0 and entry_date is not None:
             last_date = strategy_results.index[-1]
             last_price = strategy_results['Close'].iloc[-1]
-            profit = (last_price - entry_price) * position * self.contract_size
+            
+            # 计算滑点后的退出价格
+            exit_price = last_price * (1 - self.slippage) if position > 0 else last_price * (1 + self.slippage)
+            
+            # 计算毛利润
+            profit = (exit_price - entry_price) * position * self.contract_size
+            
+            # 计算手续费
+            commission = (entry_price * abs(position) * self.contract_size + 
+                          exit_price * abs(position) * self.contract_size) * self.commission_rate
+            
+            # 计算净利润
+            net_profit = profit - commission
+            
             trades.append({
                 'Entry_Date': entry_date,
                 'Exit_Date': last_date,
                 'Entry_Price': entry_price,
-                'Exit_Price': last_price,
+                'Exit_Price': exit_price,
                 'Position': position,
-                'Profit': profit,
-                'Return': (last_price / entry_price - 1) * 100 if position > 0 else (entry_price / last_price - 1) * 100
+                'Profit': net_profit,
+                'Return': (exit_price / entry_price - 1) * 100 if position > 0 else (entry_price / exit_price - 1) * 100
             })
         
         return pd.DataFrame(trades)
@@ -240,6 +273,14 @@ class TurtleBacktester:
         # 计算夏普比率（简化计算，无风险收益率设为0）
         returns = equity_curve['Returns']
         sharpe_ratio = (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() != 0 else 0
+
+        # 计算索提诺比率
+        downside_returns = returns[returns < 0]
+        downside_std = downside_returns.std()
+        sortino_ratio = (returns.mean() / downside_std) * np.sqrt(252) if downside_std != 0 else 0
+
+        # 计算卡玛比率
+        calmar_ratio = annual_return_percent / abs(max_drawdown) if max_drawdown != 0 else 0
         
         # 交易统计
         total_trades = len(trades)
