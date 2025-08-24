@@ -3,8 +3,9 @@ Unit tests for the Turtle Backtester
 """
 
 import pandas as pd
-from turtle_trading_strategy import TurtleTradingStrategy
-from turtle_backtest import TurtleBacktester
+
+from src.turtle_trading_strategy import TurtleTradingStrategy
+from src.turtle_backtest import TurtleBacktester
 
 def test_backtester_run(sample_stock_data):
     """Test the backtester runs without errors and produces results"""

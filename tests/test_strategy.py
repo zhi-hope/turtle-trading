@@ -3,7 +3,8 @@ Unit tests for the Turtle Trading Strategy
 """
 
 import pandas as pd
-from turtle_trading_strategy import TurtleTradingStrategy
+
+from src.turtle_trading_strategy import TurtleTradingStrategy
 
 def test_calculate_donchian_channels(sample_stock_data):
     """Test Donchian Channel calculation"""
